@@ -23,6 +23,26 @@ You can also download the pre-processed data:
 The first contains the MR and US volumes in MINC2 format (applied steps 1. to 3.) the two other ones contain
 7x7 patches of US and MR slices in tfrecord format but with different threshold value.
 
+**threshold-10**
+
+| ### | patches (th-10) | patches (th-20) |
+| --- | ---------------:| ---------------:|
+|  01 |         3093549 |          129635 |
+|  02 |         2521154 |          134296 |
+|  03 |         3425236 |          154154 |
+|  04 |         1671087 |          153753 |
+|  05 |         1620205 |           48974 |
+|  06 |         1808115 |           19861 |
+|  07 |         2151729 |           55009 |
+|  08 |         3379828 |          514342 |
+|  09 |         2043328 |          269513 |
+|  10 |         2240942 |           85392 |
+|  11 |         2647268 |          188275 |
+|  12 |         1614372 |           36305 |
+|  13 |         2681649 |           74709 |
+|  14 |         3248508 |          163692 |
+|     |    **34146970** |     **2027910** |
+
 The threshold is defined in `convert.ipynb` and is used to filter out patches where there is no or weak US available.
 
 ## License
