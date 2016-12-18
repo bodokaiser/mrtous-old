@@ -29,6 +29,9 @@ def main(args):
     train = cnn.training(loss)
     batch = cnn.batch()
 
+    tf.summary.image('us', batch[1], max_outputs=1)
+    tf.summary.image('us_rendered', us_, max_outputs=1)
+
     with tf.Session() as sess:
         sess.run(tf.local_variables_initializer())
         sess.run(tf.global_variables_initializer())
@@ -46,10 +49,11 @@ def main(args):
                 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
                 run_metadata = tf.RunMetadata()
 
-                _, norm, summary = sess.run([train, loss, merged], feed_dict={
-                    mr: batch[0].eval(),
-                    us: batch[1].eval(),
-                }, options=run_options, run_metadata=run_metadata)
+                batch_us, batch_mr = sess.run(batch)
+
+                _, rendered, norm, summary = sess.run([train, us_, loss, merged],
+                    feed_dict={mr: batch_us, us: batch_mr},
+                    options=run_options, run_metadata=run_metadata)
 
                 print('step: {}, norm: {:.0f}'.format(step, norm))
 
