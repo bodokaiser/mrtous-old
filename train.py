@@ -10,7 +10,7 @@ tf.app.flags.DEFINE_integer('batch_size', 1000,
     """Number of images to process per batch.""")
 tf.app.flags.DEFINE_integer('num_threads', 4,
     """Number of threads to use to utilize in batch queue.""")
-tf.app.flags.DEFINE_integer('num_epochs', 32,
+tf.app.flags.DEFINE_integer('num_epochs', 30,
     """Number of epochs to complete training.""")
 
 tf.app.flags.DEFINE_string('data_dir', 'th-30',
@@ -19,8 +19,8 @@ tf.app.flags.DEFINE_string('log_dir', '/tmp/mrtous',
     """Path to write logs to.""")
 
 def main(args):
-    cnn = model.BasicCNN([13], data_dir=FLAGS.data_dir,
-        batch_size=FLAGS.batch_size, num_threads=FLAGS.num_threads)
+    cnn = model.BasicCNN([13], data_dir=FLAGS.data_dir, batch_size=FLAGS.batch_size,
+        num_threads=FLAGS.num_threads, num_epochs=FLAGS.num_epochs)
 
     mr, us = cnn.placeholder()
     us_ = cnn.interference(mr)
@@ -28,11 +28,9 @@ def main(args):
     loss = cnn.loss(us_, us)
     train = cnn.training(loss, .0001)
     batch = cnn.batch()
-    iters = cnn.iterations()
-
-    print('iters', iters)
 
     with tf.Session() as sess:
+        sess.run(tf.local_variables_initializer())
         sess.run(tf.global_variables_initializer())
 
         coord = tf.train.Coordinator()
@@ -43,29 +41,25 @@ def main(args):
 
         try:
             step = 0
-            epoch = 0
 
-            while not coord.should_stop() or epoch < FLAGS.num_epochs:
+            while not coord.should_stop():
                 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
                 run_metadata = tf.RunMetadata()
 
-                _, summary = sess.run([train, merged], feed_dict={
+                _, norm, summary = sess.run([train, loss, merged], feed_dict={
                     mr: batch[0].eval(),
                     us: batch[1].eval(),
                 }, options=run_options, run_metadata=run_metadata)
 
-                print('epoch: {}, iteration: {}'.format(epoch, step))
-                writer.add_run_metadata(run_metadata, 'epoch{}step{}'.format(epoch, step))
+                print('step: {}, norm: {}'.format(step, norm))
+
+                writer.add_run_metadata(run_metadata, 'step{}'.format(step))
                 writer.add_summary(summary, step)
 
-                if step > iters:
-                    step = 0
-                    epoch += 1
-                else:
-                    step += 1
+                step += 1
 
-        except tf.errors.OutOfRangeError:
-            print('done with training')
+        except tf.errors.OutOfRangeError as error:
+            coord.request_stop(error)
         finally:
             writer.close()
 

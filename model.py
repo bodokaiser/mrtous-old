@@ -41,16 +41,18 @@ def _bias_variable(shape):
 
 class BasicCNN(object):
 
-    def __init__(self, records, data_dir, batch_size, num_threads):
+    def __init__(self, records, data_dir, batch_size, num_threads, num_epochs):
         filenames = _format_filenames(data_dir, records)
 
         self._filenames = filenames
         self._batch_size = batch_size
+        self._num_epochs = num_epochs
         self._num_threads = num_threads
         self._num_patches = _count_patches(filenames)
 
     def batch(self):
-        queue = tf.train.string_input_producer(self._filenames)
+        queue = tf.train.string_input_producer(self._filenames,
+            num_epochs=self.num_epochs)
 
         with tf.name_scope('reader'):
             reader = tf.TFRecordReader()
@@ -78,16 +80,16 @@ class BasicCNN(object):
         return self._batch_size
 
     @property
+    def num_epochs(self):
+        return self._num_epochs
+
+    @property
     def num_patches(self):
         return np.sum(self._num_patches)
 
     @property
     def num_threads(self):
         return self._num_threads
-
-    def iterations(self):
-        iterations = self.num_patches % self.batch_size
-        return iterations+1
 
     def placeholder(self):
         with tf.name_scope('placeholder'):
