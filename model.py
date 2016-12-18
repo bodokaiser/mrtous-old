@@ -107,9 +107,9 @@ class BasicCNN(object):
         with tf.name_scope('loss'):
             loss = tf.nn.l2_loss(f-y)
 
+            tf.summary.scalar('loss', loss)
+
         return loss
 
     def training(self, loss):
-        tf.summary.scalar('loss', loss)
-
         return tf.train.AdamOptimizer().minimize(loss)

@@ -1,7 +1,5 @@
-import numpy as np
 import tensorflow as tf
 
-import time
 import model
 
 FLAGS = tf.app.flags.FLAGS
@@ -20,7 +18,7 @@ tf.app.flags.DEFINE_string('var_dir', '/tmp/mrtous',
 tf.app.flags.DEFINE_string('log_dir', '/tmp/mrtous',
     """Path to write logs to.""")
 
-def main(args):
+def main(argv):
     cnn = model.BasicCNN([13], data_dir=FLAGS.data_dir, batch_size=FLAGS.batch_size,
         num_threads=FLAGS.num_threads, num_epochs=FLAGS.num_epochs)
 
@@ -28,17 +26,18 @@ def main(args):
     us_ = cnn.interference(mr)
 
     loss = cnn.loss(us_, us)
-    train = cnn.training(loss)
     batch = cnn.batch()
 
     tf.summary.image('us', batch[1], max_outputs=1)
     tf.summary.image('us_rendered', us_, max_outputs=1)
 
     with tf.Session() as sess:
+        saver = tf.train.Saver()
+        saver.restore(sess, save_path=FLAGS.var_dir+'/var.ckpt')
+
         sess.run(tf.local_variables_initializer())
         sess.run(tf.global_variables_initializer())
-
-        saver = tf.train.Saver()
+        
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
@@ -52,7 +51,7 @@ def main(args):
                 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
                 run_metadata = tf.RunMetadata()
 
-                _, rendered, norm, summary = sess.run([train, us_, loss, merged],
+                rendered, norm, summary = sess.run([us_, loss, merged],
                     feed_dict={mr: batch[0].eval(), us: batch[1].eval()},
                     options=run_options, run_metadata=run_metadata)
 
@@ -62,7 +61,7 @@ def main(args):
                 writer.add_summary(summary, step)
 
                 step += 1
-                
+
         except tf.errors.OutOfRangeError as error:
             coord.request_stop(error)
         finally:
@@ -70,8 +69,6 @@ def main(args):
 
             coord.request_stop()
             coord.join(threads)
-
-        saver.save(sess, save_path=FLAGS.var_dir+'/var.ckpt')
 
 if __name__ == '__main__':
     tf.app.run()
