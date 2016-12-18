@@ -26,7 +26,7 @@ def main(args):
     us_ = cnn.interference(mr)
 
     loss = cnn.loss(us_, us)
-    train = cnn.training(loss, .0001)
+    train = cnn.training(loss)
     batch = cnn.batch()
 
     with tf.Session() as sess:
@@ -51,7 +51,7 @@ def main(args):
                     us: batch[1].eval(),
                 }, options=run_options, run_metadata=run_metadata)
 
-                print('step: {}, norm: {}'.format(step, norm))
+                print('step: {}, norm: {:.0f}'.format(step, norm))
 
                 writer.add_run_metadata(run_metadata, 'step{}'.format(step))
                 writer.add_summary(summary, step)

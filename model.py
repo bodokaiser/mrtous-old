@@ -119,7 +119,7 @@ class BasicCNN(object):
 
         return loss
 
-    def training(self, loss, rate):
+    def training(self, loss):
         tf.summary.scalar('loss', loss)
 
-        return tf.train.AdamOptimizer(rate).minimize(loss)
+        return tf.train.AdamOptimizer().minimize(loss)
