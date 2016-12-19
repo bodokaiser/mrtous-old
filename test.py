@@ -19,7 +19,7 @@ tf.app.flags.DEFINE_string('log_dir', '/tmp/mrtous',
     """Path to write logs to.""")
 
 def main(argv):
-    cnn = model.BasicCNN([13], data_dir=FLAGS.data_dir, batch_size=FLAGS.batch_size,
+    cnn = model.BasicCNN([12], data_dir=FLAGS.data_dir, batch_size=FLAGS.batch_size,
         num_threads=FLAGS.num_threads, num_epochs=FLAGS.num_epochs)
 
     mr, us = cnn.placeholder()
